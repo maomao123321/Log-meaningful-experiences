@@ -1,0 +1,23 @@
+.new-entry-page {
+  padding: 20px;
+}
+
+.topics-list {
+  margin-bottom: 20px;
+}
+
+.topic-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.photo-upload-note {
+  margin: 20px 0;
+  font-style: italic;
+}
+
+.voice-input {
+  display: flex;
+  align-items: center;
+}
