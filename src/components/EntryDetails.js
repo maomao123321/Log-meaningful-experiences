@@ -175,16 +175,16 @@ const startRecording = () => {
 
   const handleFinishConversation = async () => {
     const summary = await summarizeConversation(topic, messages);
-    console.log('生成的摘要:', summary);
-    
     const newEntry = { 
       topic: topic || 'Untitled Entry', 
       summary: {
-        subTopics: summary.subTopics || []  // 确保始终有 subTopics 数组
+        subTopics: summary.subTopics.map(st => ({
+          title: st.title || 'Untitled Subtopic',
+          summary: st.summary || 'No additional information available.'
+        }))
       },
       date: new Date().toISOString() 
     };
-    console.log('新的历史记录条目:', newEntry);
     
     const histories = JSON.parse(localStorage.getItem('histories') || '[]');
     histories.push(newEntry);

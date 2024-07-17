@@ -72,26 +72,28 @@ function HistoryPage() {
   const [entries, setEntries] = useState([]);
   const [error, setError] = useState(null);
   const [selectedSummary, setSelectedSummary] = useState(null);
+  const [selectedSubTopic, setSelectedSubTopic] = useState(null);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(new Audio());
   const navigate = useNavigate();
 
   useEffect(() => {
-    try {
-      const histories = JSON.parse(localStorage.getItem('histories') || '[]');
-      const validHistories = histories.filter(entry => {
-        return entry.topic && entry.summary && Array.isArray(entry.summary.subTopics) && entry.summary.subTopics.length > 0;
-      });
-      setEntries(validHistories);
-    } catch (err) {
-      console.error('加载历史记录时出错:', err);
-      setError('加载历史记录失败');
-    }
+    const loadedHistories = JSON.parse(localStorage.getItem('histories') || '[]');
+    const processedHistories = loadedHistories.map(entry => ({
+      ...entry,
+      summary: {
+        subTopics: (entry.summary?.subTopics || []).map(st => ({
+          title: st.title || 'Untitled Subtopic',
+          summary: st.summary || 'No additional information available.'
+        }))
+      }
+    }));
+    setEntries(processedHistories);
   }, []);
 
-  const handleSubTopicClick = (summary) => {
-    setSelectedSummary(summary);
+  const handleSubTopicClick = (subTopic) => {
+    setSelectedSubTopic(subTopic);
   };
 
   const handleHomeClick = () => {
@@ -99,27 +101,23 @@ function HistoryPage() {
   };
 
   const handleTopicClick = (topic) => {
-    setSelectedTopic({
+    const processedTopic = {
       ...topic,
       summary: {
-        subTopics: Array.isArray(topic.summary.subTopics) ? topic.summary.subTopics : []
+        subTopics: (topic.summary?.subTopics || []).slice(0, 3).map((st, index) => ({
+          title: st.title || `Subtopic ${index + 1}`,
+          summary: st.summary || 'No additional information available.'
+        }))
       }
-    });
+    };
+    while (processedTopic.summary.subTopics.length < 3) {
+      processedTopic.summary.subTopics.push({
+        title: `Subtopic ${processedTopic.summary.subTopics.length + 1}`,
+        summary: 'No additional information available.'
+      });
+    }
+    setSelectedTopic(processedTopic);
   };
-
-  // const handleTopicClick = async (topic) => {
-  //   setSelectedTopic(topic);
-  //   try {
-  //     const { subTopics } = await summarizeConversation(topic.topic, topic.messages);
-  //     setSelectedTopic(prevTopic => ({ 
-  //       ...prevTopic, 
-  //       summary: { subTopics: subTopics.slice(0, 3) } 
-  //     }));
-  //   } catch (error) {
-  //     console.error('Error summarizing conversation:', error);
-  //     // 可以在这里添加错误处理，比如显示一个错误消息给用户
-  //   }
-  // };
 
   const handleDeleteTopic = () => {
     if (!selectedTopic) return;
@@ -132,13 +130,13 @@ function HistoryPage() {
   };
 
   // text to speech
-  const handlePlayText = async () => {
+  const handlePlayText = async (text) => {
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
       try {
-        const audioBlob = await textToSpeech(selectedSummary);
+        const audioBlob = await textToSpeech(text);
         const audioUrl = URL.createObjectURL(audioBlob);
         audioRef.current.src = audioUrl;
         await audioRef.current.play();
@@ -149,10 +147,10 @@ function HistoryPage() {
     }
   };
 
-  const handleCopyText = () => {
-    navigator.clipboard.writeText(selectedSummary).then(() => {
-      // 添加一个提示，表示复制成功
+  const handleCopyText = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
       console.log('Text copied to clipboard');
+      // 可以添加一个临时提示，比如使用 Snackbar 组件
     }, (err) => {
       console.error('Could not copy text: ', err);
     });
@@ -215,7 +213,7 @@ function HistoryPage() {
   
 
  {/* 中间内容区域 */}
-<Grid item xs={8}>
+ <Grid item xs={8}>
   <ContentColumn>
     {selectedTopic ? (
       <Box sx={{ border: '1px solid #ccc', borderRadius: '8px', padding: '16px', position: 'relative' }}>
@@ -229,15 +227,16 @@ function HistoryPage() {
             <DeleteIcon />
           </IconButton>
         </Box>
-        <Grid container spacing={3}>
-          {selectedTopic.summary && selectedTopic.summary.subTopics && selectedTopic.summary.subTopics.slice(0, 3).map((subTopic, subIndex) => (
-            <Grid item xs={4} key={subIndex} sx={{ height: '500px' }}>
-              <StyledPaper elevation={3} onClick={() => handleSubTopicClick(subTopic.summary)}>
-                <Typography variant="h5" gutterBottom>{subTopic.title}</Typography>
-                <Typography variant="body1">{subTopic.summary}</Typography>
-              </StyledPaper>
-            </Grid>
-          ))}
+<Grid container spacing={3}>
+  {(selectedTopic?.summary?.subTopics || []).slice(0, 3).map((subTopic, subIndex) => (
+    <Grid item xs={4} key={subIndex} sx={{ height: '500px' }}>
+      <StyledPaper elevation={3} onClick={() => handleSubTopicClick(subTopic)}>
+        <Typography variant="h5" gutterBottom>{subTopic.title}</Typography>
+        <Typography variant="body1">{subTopic.summary}</Typography>
+      </StyledPaper>
+    </Grid>
+))}
+
         </Grid>
       </Box>
     ) : (
@@ -246,45 +245,52 @@ function HistoryPage() {
   </ContentColumn>
 </Grid>
 
-{/* Modal 保持不变 */}
+{/* Modal 弹窗 */}
 <Modal
-        open={Boolean(selectedSummary)}
-        onClose={() => setSelectedSummary(null)}
-        aria-labelledby="summary-modal-title"
-        aria-describedby="summary-modal-description"
+  open={Boolean(selectedSubTopic)}
+  onClose={() => setSelectedSubTopic(null)}
+  aria-labelledby="subtopic-modal-title"
+  aria-describedby="subtopic-modal-description"
+>
+  <Box sx={{
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '80%',
+    maxWidth: '600px',
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+    borderRadius: '8px',
+  }}>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Typography 
+        id="subtopic-modal-title" 
+        variant="h5"  // 从 h6 改为 h5
+        component="h2" 
+        sx={{ fontSize: '3.0rem' }}  // 增加字体大小
       >
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '80%',
-          maxWidth: '600px',
-          bgcolor: 'background.paper',
-          border: '2px solid #000',
-          boxShadow: 24,
-          p: 4,
-          borderRadius: '8px',
-        }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography id="summary-modal-title" variant="h3" component="h2">
-              Summary
-            </Typography>
-            <Box>
-              <IconButton onClick={handlePlayText} color="primary">
-                <VolumeUpIcon />
-              </IconButton>
-              <IconButton onClick={handleCopyText} color="primary">
-                <ContentCopyIcon />
-              </IconButton>
-            </Box>
-          </Box>
-          <Typography id="summary-modal-description" variant="h4">
-            {selectedSummary}
-          </Typography>
-        </Box>
-      </Modal>
-
+        {selectedSubTopic?.title}
+      </Typography>
+      <Box>
+        <IconButton onClick={() => handlePlayText(selectedSubTopic?.summary)} color="primary">
+          <VolumeUpIcon />
+        </IconButton>
+        <IconButton onClick={() => handleCopyText(selectedSubTopic?.summary)} color="primary">
+          <ContentCopyIcon />
+        </IconButton>
+      </Box>
+    </Box>
+    <Typography 
+      id="subtopic-modal-description" 
+      sx={{ mt: 2, fontSize: '1.8rem' }}  // 增加字体大小
+    >
+      {selectedSubTopic?.summary}
+    </Typography>
+  </Box>
+</Modal>
 
 
           {/* 右侧图片列 */}

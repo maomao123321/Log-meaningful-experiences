@@ -126,15 +126,34 @@ export const textToSpeech = async (text) => {
 
   export const summarizeConversation = async (topic, messages) => {
     try {
-      console.log('Summarizing conversation:', topic, messages);
       const response = await axios.post(
         'https://api.openai.com/v1/chat/completions',
         {
           model: "gpt-3.5-turbo",
           messages: [
-            {role: "system", content: `Summarize the following conversation about ${topic} into only 3 subtopics. For each subtopic, provide a title and a very brief summary,very simple sentences. Try to use the original words and phrases from the conversation. `},
+            {
+              role: "system", 
+              content: `You are tasked with summarizing a conversation about "${topic}" into exactly 3 subtopics. For each subtopic:
+              1. Provide a short, descriptive title (maximum 5 words) that reflects the user's perspective.
+              2. Write a concise summary (2-3 sentences) in the first person, as if the user is speaking. Use "I" statements.
+              3. Focus strictly on the content of the user's responses. Do not introduce new information or questions.
+              4. Use simple language and incorporate key phrases or terms from the user's original responses.
+              5. Ensure each subtopic covers a distinct aspect of the user's experience or thoughts.
+              
+              Format your response as: 
+              Subtopic 1: [Title]
+              Summary: [2-3 sentence summary in first person]
+  
+              Subtopic 2: [Title]
+              Summary: [2-3 sentence summary in first person]
+  
+              Subtopic 3: [Title]
+              Summary: [2-3 sentence summary in first person]`
+            },
             ...messages.map(m => ({role: m.sender === 'user' ? 'user' : 'assistant', content: m.text}))
-          ]
+          ],
+          temperature: 0.5, // Lowered for more focused responses
+          max_tokens: 500
         },
         {
           headers: {
@@ -144,36 +163,40 @@ export const textToSpeech = async (text) => {
         }
       );
   
-      console.log('API response:', response.data);
       const summaryText = response.data.choices[0].message.content;
-      console.log('Summary text:', summaryText);
-      
       const subTopics = parseSubTopics(summaryText);
-      return { subTopics: subTopics.length > 0 ? subTopics : [{ title: 'Summary', summary: summaryText }] };
+  
+      return { subTopics: subTopics.slice(0, 3) };
     } catch (error) {
       console.error('Error summarizing conversation:', error);
-      return { subTopics: [{ title: 'Error', summary: 'Failed to generate summary' }] };
+      return {
+        subTopics: [
+          { title: 'Error', summary: 'Failed to generate summary. Please try again.' },
+          { title: 'Error', summary: 'Failed to generate summary. Please try again.' },
+          { title: 'Error', summary: 'Failed to generate summary. Please try again.' }
+        ]
+      };
     }
   };
   
-
-
   const parseSubTopics = (summaryText) => {
-    console.log('Parsing summary text:', summaryText);
-    const lines = summaryText.split('\n');
     const subTopics = [];
-    let currentTopic = null;
+    const regex = /Subtopic \d+: (.*?)\nSummary: ([\s\S]*?)(?=\n\nSubtopic|$)/g;
+    let match;
   
-    for (const line of lines) {
-      if (line.toLowerCase().includes('subtopic:') || line.match(/^\d+\./)) {
-        if (currentTopic) subTopics.push(currentTopic);
-        currentTopic = { title: line.replace(/^(Subtopic:|)\d+\.?\s*/, '').trim(), summary: '' };
-      } else if (currentTopic) {
-        currentTopic.summary += line.trim() + ' ';
-      }
+    while ((match = regex.exec(summaryText)) !== null) {
+      subTopics.push({
+        title: match[1].trim(),
+        summary: match[2].trim()
+      });
     }
-    if (currentTopic) subTopics.push(currentTopic);
   
-    console.log('Parsed subtopics:', subTopics);
+    while (subTopics.length < 3) {
+      subTopics.push({
+        title: `Additional Thought ${subTopics.length + 1}`,
+        summary: 'I didn\'t provide more information on this point.'
+      });
+    }
+  
     return subTopics;
   };
