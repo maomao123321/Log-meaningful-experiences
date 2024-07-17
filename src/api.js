@@ -41,38 +41,38 @@ export const assistedDialogue = async (userInput) => {
 };
 
 // 生成次主题
-export const generateSubtopics = async (mainTopic) => {
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: "Generate subtopics for the given main topic." },
-        { role: "user", content: `Main topic: ${mainTopic}` }
-      ],
-    });
-    return response.choices[0].message.content.split('\n');
-  } catch (error) {
-    console.error('Error generating subtopics:', error);
-    throw error;
-  }
-};
+// export const generateSubtopics = async (mainTopic) => {
+//   try {
+//     const response = await openai.chat.completions.create({
+//       model: "gpt-3.5-turbo",
+//       messages: [
+//         { role: "system", content: "Generate subtopics for the given main topic." },
+//         { role: "user", content: `Main topic: ${mainTopic}` }
+//       ],
+//     });
+//     return response.choices[0].message.content.split('\n');
+//   } catch (error) {
+//     console.error('Error generating subtopics:', error);
+//     throw error;
+//   }
+// };
 
 // 生成摘要
-export const generateSummary = async (text) => {
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: "Summarize the following text." },
-        { role: "user", content: text }
-      ],
-    });
-    return response.choices[0].message.content;
-  } catch (error) {
-    console.error('Error generating summary:', error);
-    throw error;
-  }
-};
+// export const generateSummary = async (text) => {
+//   try {
+//     const response = await openai.chat.completions.create({
+//       model: "gpt-3.5-turbo",
+//       messages: [
+//         { role: "system", content: "Summarize the following text." },
+//         { role: "user", content: text }
+//       ],
+//     });
+//     return response.choices[0].message.content;
+//   } catch (error) {
+//     console.error('Error generating summary:', error);
+//     throw error;
+//   }
+// };
 
 // 语音识别
 export const speechToText = async (audioBlob) => {

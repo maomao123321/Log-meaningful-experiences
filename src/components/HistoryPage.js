@@ -161,7 +161,6 @@ function HistoryPage() {
     };
   }, []);
 
-
   
   if (error) {
     return <Typography color="error" variant="h4">{error}</Typography>;
