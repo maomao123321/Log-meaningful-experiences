@@ -81,7 +81,7 @@ function HistoryPage() {
     try {
       const histories = JSON.parse(localStorage.getItem('histories') || '[]');
       const validHistories = histories.filter(entry => {
-        return entry.topic && entry.summary && entry.summary.subTopics && entry.summary.subTopics.length > 0;
+        return entry.topic && entry.summary && Array.isArray(entry.summary.subTopics) && entry.summary.subTopics.length > 0;
       });
       setEntries(validHistories);
     } catch (err) {
@@ -99,7 +99,12 @@ function HistoryPage() {
   };
 
   const handleTopicClick = (topic) => {
-    setSelectedTopic(topic);
+    setSelectedTopic({
+      ...topic,
+      summary: {
+        subTopics: Array.isArray(topic.summary.subTopics) ? topic.summary.subTopics : []
+      }
+    });
   };
 
   // const handleTopicClick = async (topic) => {

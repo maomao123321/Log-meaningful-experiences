@@ -147,13 +147,12 @@ export const textToSpeech = async (text) => {
       console.log('API response:', response.data);
       const summaryText = response.data.choices[0].message.content;
       console.log('Summary text:', summaryText);
+      
       const subTopics = parseSubTopics(summaryText);
-      console.log('Parsed subtopics:', subTopics);
-  
-      return { subTopics };
+      return { subTopics: subTopics.length > 0 ? subTopics : [{ title: 'Summary', summary: summaryText }] };
     } catch (error) {
       console.error('Error summarizing conversation:', error);
-      return { subTopics: [] };
+      return { subTopics: [{ title: 'Error', summary: 'Failed to generate summary' }] };
     }
   };
   

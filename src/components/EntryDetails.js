@@ -179,7 +179,9 @@ const startRecording = () => {
     
     const newEntry = { 
       topic: topic || 'Untitled Entry', 
-      summary: summary,
+      summary: {
+        subTopics: summary.subTopics || []  // 确保始终有 subTopics 数组
+      },
       date: new Date().toISOString() 
     };
     console.log('新的历史记录条目:', newEntry);
