@@ -83,6 +83,13 @@ function EntryDetails() {
     }
   };
 
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleSend();
+    }
+  };
+
   // AI initiate dialogue
 
   const initiateAIDialogue = async () => {
@@ -325,6 +332,7 @@ const startRecording = () => {
               inputRef={inputRef}
               value={currentInput} 
               onChange={handleInputChange}
+              onKeyPress={handleKeyPress} 
               onBlur={() => inputRef.current && inputRef.current.focus()}
               placeholder="Start talking with your AI friend"
               fullWidth

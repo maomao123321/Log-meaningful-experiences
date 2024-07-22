@@ -111,6 +111,8 @@ const VoiceInputContainer = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
 }));
 
+
+
 function NewEntryPage() {
   const [topic, setTopic] = useState('');
   const [currentInput, setCurrentInput] = useState('');
@@ -122,7 +124,6 @@ function NewEntryPage() {
   
   const canConfirm = topic.trim() !== '' && uploadedImages.length > 0;
   const hasUploadedImages = uploadedImages.length > 0;
-
 
 
   const handleImageUpload = () => {
@@ -141,8 +142,6 @@ function NewEntryPage() {
     navigate('/entry-details', { state: { images: uploadedImages, topic: topic } });
   };
   
-
-
 
   const startRecording = async () => {
     try {
@@ -181,7 +180,13 @@ function NewEntryPage() {
     }
   };
 
-
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleSend();
+    }
+  };
+  
   const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
 
 
@@ -261,6 +266,7 @@ function NewEntryPage() {
         <TextField 
           value={currentInput} 
           onChange={(e) => setCurrentInput(e.target.value)}
+          onKeyPress={handleKeyPress} 
           placeholder="Input your topic, e.g. Hawaii travel"
           fullWidth
           variant="outlined"
