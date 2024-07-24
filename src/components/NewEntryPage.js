@@ -177,7 +177,7 @@ function NewEntryPage() {
       <CssBaseline />
       <PageContainer>
         <Typography variant="h2" style={{ textAlign: 'center', marginBottom: '40px', fontWeight: 'bold' }}>
-          Log New Diary
+          Log New Event
         </Typography>
 
         <ConfirmButtonContainer>
