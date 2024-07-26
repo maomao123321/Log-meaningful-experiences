@@ -86,7 +86,7 @@ function HomePage() {
               textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
             }}
           >
-            Log Your Meaning Events
+            My Experience Diary
           </Typography>
           <Grid container spacing={6} justifyContent="center" sx={{ mt: 4 }}>
             <Grid item>

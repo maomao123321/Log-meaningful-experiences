@@ -1,5 +1,6 @@
 import HomeIcon from '@mui/icons-material/Home';
 import MicIcon from '@mui/icons-material/Mic';
+import StopIcon from '@mui/icons-material/Stop';
 import SaveIcon from '@mui/icons-material/Save';
 import SendIcon from '@mui/icons-material/Send';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
@@ -313,10 +314,10 @@ const startRecording = () => {
                   {message.sender === 'ai' && (
                     <Box sx={{ mt: 1 }}>
                       <IconButton size="small" onClick={() => handleSpeak(message.text)}>
-                        <VolumeUpIcon fontSize="small" color="primary" />
+                        <VolumeUpIcon fontSize="large" color="primary" />
                       </IconButton>
                       <IconButton size="small" onClick={() => handleSave(message.text)}>
-                        <SaveIcon fontSize="small" color="primary" />
+                        <SaveIcon fontSize="large" color="primary" />
                       </IconButton>
                     </Box>
                   )}
@@ -343,14 +344,13 @@ const startRecording = () => {
             />
 
             <IconButton
-              size="large" 
-              color={isRecording ? "secondary" : "primary"} 
+              color={isRecording ? "error" : "primary"} 
               onClick={isRecording ? stopRecording : startRecording}
             >
-              <MicIcon />
+             {isRecording ? <StopIcon sx={{ fontSize: 40 }} /> : <MicIcon sx={{ fontSize: 40 }} />}
             </IconButton>
-            <IconButton size="large" color="primary" onClick={handleSend}>
-              <SendIcon />
+            <IconButton color="primary" onClick={handleSend}>
+              <SendIcon sx={{ fontSize: 40 }} />
             </IconButton>
           </VoiceInputContainer>
         </Paper>

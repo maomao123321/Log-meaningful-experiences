@@ -1,4 +1,4 @@
-import { AddCircle, Mic, Send } from '@mui/icons-material';
+import { AddCircle, Mic, Stop, Send } from '@mui/icons-material';
 import { Box, Button, IconButton, Paper, TextField, Typography, useMediaQuery, Fade } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -217,11 +217,15 @@ function NewEntryPage() {
             }}
             sx={{ width: '60%' }}
           />
-          <IconButton onClick={isRecording ? stopRecording : startRecording} size="large">
-            <Mic color={isRecording ? "secondary" : "primary"} style={{ fontSize: '2rem' }} />
+          <IconButton 
+            onClick={isRecording ? stopRecording : startRecording} 
+            color={isRecording ? "error" : "primary"}
+            sx={{ mr: 1 }}
+          >
+           {isRecording ? <Stop sx={{ fontSize: 40 }} /> : <Mic sx={{ fontSize: 40 }} />}
           </IconButton>
-          <IconButton onClick={handleSend} size="large" color="primary">
-            <Send style={{ fontSize: '2rem' }} />
+          <IconButton onClick={handleSend} color="primary">
+            <Send style={{ fontSize: 40 }} />
           </IconButton>
         </InputContainer>
 
