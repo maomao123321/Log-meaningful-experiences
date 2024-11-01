@@ -1,13 +1,12 @@
-import OpenAI from 'openai';
 import axios from 'axios';
-
+import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.REACT_APP_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true
 });
 
-const ELEVENLABS_API_KEY = process.env.REACT_APP_ELEVENLABS_API_KEY;
+//const ELEVENLABS_API_KEY = process.env.REACT_APP_ELEVENLABS_API_KEY;
 
 // 文本处理函数
 export const processText = async (text) => {
@@ -94,30 +93,41 @@ export const speechToText = async (audioBlob) => {
 };
 
 // 文本转语音
+// Updated text-to-speech function using OpenAI
 export const textToSpeech = async (text) => {
   try {
     const response = await axios.post(
-      'https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM',
+      'https://api.openai.com/v1/audio/speech',
       {
-        text: text,
-        voice_settings: {
-          stability: 0,
-          similarity_boost: 0
-        }
+        model: 'tts-1',
+        input: text,
+        voice: 'alloy',  // Available voices: alloy, echo, fable, onyx, nova, shimmer
+        speed: 1.0
       },
       {
         headers: {
-          'Accept': 'audio/mpeg',
-          'xi-api-key': ELEVENLABS_API_KEY,
+          'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
           'Content-Type': 'application/json'
         },
         responseType: 'arraybuffer'
       }
     );
 
+    // Return audio blob for consistent interface with previous implementation
     return new Blob([response.data], { type: 'audio/mpeg' });
   } catch (error) {
     console.error('Error in text-to-speech:', error);
+    if (error.response?.data instanceof ArrayBuffer) {
+      // Decode error message from ArrayBuffer if present
+      const decoder = new TextDecoder();
+      try {
+        const text = decoder.decode(error.response.data);
+        const jsonError = JSON.parse(text);
+        console.error('API Error:', jsonError);
+      } catch (e) {
+        console.error('Failed to decode error message');
+      }
+    }
     throw error;
   }
 };
